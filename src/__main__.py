@@ -1,0 +1,8 @@
+from renderer import prettyPrintDict
+from segmenter import segment
+
+data = bytearray.fromhex(
+    "8E986B41E064C889F3A858A908004500003DF644000040111840AC140A02AC140A0190CA0035002918D49C38010000010000000000000373736C076773746174696303636F6D00001C0001"
+)
+
+prettyPrintDict(segment(data))  # type: ignore
