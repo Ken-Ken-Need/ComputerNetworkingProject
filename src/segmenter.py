@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, Union
 
 segmentedEthernetData = TypedDict(
     "segmentedEthernetData",
@@ -50,8 +50,30 @@ segmentedDNSData = TypedDict(
     },
 )
 
-segmentedData = TypedDict(
-    "segmentedData",
+segmentedDHCPData = TypedDict(
+    "segmentedDHCPData",
+    {
+        "Op": int,
+        "Htype": int,
+        "Hlen": int,
+        "Hops": int,
+        "Xid": str,
+        "Secs": str,
+        "Flags": str,
+        "Ciaddr": str,
+        "Yiaddr": str,
+        "Siaddr": str,
+        "Giaddr": str,
+        "Chaddr": str,
+        "Sname": str,
+        "File": str,
+        "Magic": str,
+        "Options": str,
+    },
+)
+
+segmentedDataWithDNS = TypedDict(
+    "segmentedDataWithDNS",
     {
         "Ethernet": segmentedEthernetData,
         "IP": segmentedIPData,
@@ -59,6 +81,18 @@ segmentedData = TypedDict(
         "DNS": segmentedDNSData,
     },
 )
+
+segmentedDataWithDHCP = TypedDict(
+    "segmentedDataWithDHCP",
+    {
+        "Ethernet": segmentedEthernetData,
+        "IP": segmentedIPData,
+        "UDP": segmentedUDPData,
+        "DHCP": segmentedDHCPData,
+    },
+)
+
+segmentedData = Union[segmentedDataWithDNS, segmentedDataWithDHCP]
 
 
 def segmentEthernet(data: bytearray) -> segmentedEthernetData:
@@ -107,11 +141,46 @@ def segmentDNS(data: bytearray) -> segmentedDNSData:
     }
 
 
-def segment(data: bytearray) -> segmentedData:
-
+def segmentDHCP(data: bytearray) -> segmentedDHCPData:
     return {
-        "Ethernet": segmentEthernet(data[:14]),
-        "IP": segmentIP(data[14:34]),
-        "UDP": segmentUDP(data[34:42]),
-        "DNS": segmentDNS(data[42:]),
+        "Op": data[0],
+        "Htype": data[1],
+        "Hlen": data[2],
+        "Hops": data[3],
+        "Xid": data[4:8].hex(),
+        "Secs": data[8:10].hex(),
+        "Flags": data[10:12].hex(),
+        "Ciaddr": data[12:16].hex(),
+        "Yiaddr": data[16:20].hex(),
+        "Siaddr": data[20:24].hex(),
+        "Giaddr": data[24:28].hex(),
+        "Chaddr": data[28:44].hex(),
+        "Sname": data[44:108].hex(),
+        "File": data[108:236].hex(),
+        "Magic": data[236:240].hex(),
+        "Options": data[240:].hex(),
     }
+
+
+def segment(data: bytearray) -> segmentedData:
+    ethernetData = segmentEthernet(data[:14])
+    iPData = segmentIP(data[14:34])
+    uDPData = segmentUDP(data[34:42])
+    if uDPData["Destination Port"] == "0035" or uDPData["Source Port"] == "0035":
+        dnsData = segmentDNS(data[42:])
+        return {
+            "Ethernet": ethernetData,
+            "IP": iPData,
+            "UDP": uDPData,
+            "DNS": dnsData,
+        }
+    elif uDPData["Destination Port"] == ("0043" or "0044"):
+        dhcpData = segmentDHCP(data[42:])
+        return {
+            "Ethernet": ethernetData,
+            "IP": iPData,
+            "UDP": uDPData,
+            "DHCP": dhcpData,
+        }
+    else:
+        raise ValueError("Unknown protocol")
