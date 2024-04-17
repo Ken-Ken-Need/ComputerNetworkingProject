@@ -46,7 +46,7 @@ segmentedDNSData = TypedDict(
         "Answer RRs": int,
         "Authority RRs": int,
         "Additional RRs": int,
-        "Queries": bytearray,
+        "Queries/Answers/AServers": bytearray,
     },
 )
 
@@ -137,7 +137,7 @@ def segmentDNS(data: bytearray) -> segmentedDNSData:
         "Answer RRs": int(data[6:8].hex(), 16),
         "Authority RRs": int(data[8:10].hex(), 16),
         "Additional RRs": int(data[10:12].hex(), 16),
-        "Queries": data[12:],
+        "Queries/Answers/AServers": data[12:],
     }
 
 
