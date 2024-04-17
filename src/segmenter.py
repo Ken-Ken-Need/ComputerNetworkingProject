@@ -15,7 +15,7 @@ segmentedIPData = TypedDict(
         "Version": int,
         "IHL": int,
         "ToS": int,
-        "Total Length": str,
+        "Total Length": int,
         "Identification": str,
         "Flags": int,
         "Fragment Offset": int,
@@ -30,9 +30,9 @@ segmentedIPData = TypedDict(
 segmentedUDPData = TypedDict(
     "segmentedUDPData",
     {
-        "Source Port": str,
-        "Destination Port": str,
-        "Length": str,
+        "Source Port": int,
+        "Destination Port": int,
+        "Length": int,
         "Checksum": str,
     },
 )
@@ -42,11 +42,11 @@ segmentedDNSData = TypedDict(
     {
         "Transaction ID": str,
         "Flags": str,
-        "Questions": str,
-        "Answer RRs": str,
-        "Authority RRs": str,
-        "Additional RRs": str,
-        "Queries": str,
+        "Questions": int,
+        "Answer RRs": int,
+        "Authority RRs": int,
+        "Additional RRs": int,
+        "Queries": bytearray,
     },
 )
 
@@ -68,7 +68,7 @@ segmentedDHCPData = TypedDict(
         "Sname": str,
         "File": str,
         "Magic": str,
-        "Options": str,
+        "Options": bytearray,
     },
 )
 
@@ -108,7 +108,7 @@ def segmentIP(data: bytearray) -> segmentedIPData:
         "Version": data[0] >> 4,
         "IHL": data[0] & 0x0F,
         "ToS": data[1],
-        "Total Length": data[2:4].hex(),
+        "Total Length": int(data[2:4].hex(), 16),
         "Identification": data[4:6].hex(),
         "Flags": data[6] >> 5,
         "Fragment Offset": ((data[6] & 0x1F) << 8) + data[7],
@@ -122,9 +122,9 @@ def segmentIP(data: bytearray) -> segmentedIPData:
 
 def segmentUDP(data: bytearray) -> segmentedUDPData:
     return {
-        "Source Port": data[:2].hex(),
-        "Destination Port": data[2:4].hex(),
-        "Length": data[4:6].hex(),
+        "Source Port": int(data[:2].hex(), 16),
+        "Destination Port": int(data[2:4].hex(), 16),
+        "Length": int(data[4:6].hex(), 16),
         "Checksum": data[6:8].hex(),
     }
 
@@ -133,11 +133,11 @@ def segmentDNS(data: bytearray) -> segmentedDNSData:
     return {
         "Transaction ID": data[:2].hex(),
         "Flags": data[2:4].hex(),
-        "Questions": data[4:6].hex(),
-        "Answer RRs": data[6:8].hex(),
-        "Authority RRs": data[8:10].hex(),
-        "Additional RRs": data[10:12].hex(),
-        "Queries": data[12:].hex(),
+        "Questions": int(data[4:6].hex(), 16),
+        "Answer RRs": int(data[6:8].hex(), 16),
+        "Authority RRs": int(data[8:10].hex(), 16),
+        "Additional RRs": int(data[10:12].hex(), 16),
+        "Queries": data[12:],
     }
 
 
@@ -158,7 +158,7 @@ def segmentDHCP(data: bytearray) -> segmentedDHCPData:
         "Sname": data[44:108].hex(),
         "File": data[108:236].hex(),
         "Magic": data[236:240].hex(),
-        "Options": data[240:].hex(),
+        "Options": data[240:],
     }
 
 
@@ -166,7 +166,7 @@ def segment(data: bytearray) -> segmentedData:
     ethernetData = segmentEthernet(data[:14])
     iPData = segmentIP(data[14:34])
     uDPData = segmentUDP(data[34:42])
-    if uDPData["Destination Port"] == "0035" or uDPData["Source Port"] == "0035":
+    if uDPData["Destination Port"] == 53 or uDPData["Source Port"] == 53:
         dnsData = segmentDNS(data[42:])
         return {
             "Ethernet": ethernetData,
@@ -174,7 +174,7 @@ def segment(data: bytearray) -> segmentedData:
             "UDP": uDPData,
             "DNS": dnsData,
         }
-    elif uDPData["Destination Port"] == ("0043" or "0044"):
+    elif uDPData["Destination Port"] == (67 or 68):
         dhcpData = segmentDHCP(data[42:])
         return {
             "Ethernet": ethernetData,
