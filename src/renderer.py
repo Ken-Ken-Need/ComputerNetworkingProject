@@ -1,10 +1,3 @@
-# Pretty print dictionary
+from pprint import PrettyPrinter
 
-
-def prettyPrintDict(d: dict, indent: int = 0):
-    for key, value in d.items():
-        if isinstance(value, dict):
-            print("  " * indent + f"{key}:")
-            prettyPrintDict(value, indent + 4)
-        else:
-            print("  " * indent + f"{key}: {value}")
+pp = PrettyPrinter(indent=2, sort_dicts=True)
