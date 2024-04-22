@@ -4,22 +4,24 @@ from decoder.general import hex2DecIp
 
 
 def decodeSubnetMask(data: bytearray) -> dict[str, str]:
-    return {"key": str(data)}
 
+    return {"key": str(data)}
 
 def decodeRouter(data: bytearray) -> dict[str, str]:
     return {"key": str(data)}
 
-
 def decodeDomainNameServer(data: bytearray) -> dict[str, str]:
+    
     return {"key": str(data)}
 
 
 def decodeHostname(data: bytearray) -> dict[str, str]:
+
     return {"key": str(data)}
 
 
 def decodeDomainName(data: bytearray) -> dict[str, str]:
+
     return {"key": str(data)}
 
 
@@ -28,8 +30,18 @@ def decodeIPAddressLeaseTime(data: bytearray) -> dict[str, str]:
 
 
 def decodeDHCPMessageType(data: bytearray) -> dict[str, str]:
-    return {"key": str(data)}
-
+    lookUpTable = {
+        1 : 'Discover',
+        2 : 'Offer',
+        3 : 'Request',
+        4 : 'Decline',
+        5 : 'Pack',
+        6 : 'Pnak',
+        7 : 'Release',
+        8 : 'Inform'
+    }
+    id = int.from_bytes(data, "big")
+    return {"value" : lookUpTable[id]}
 
 def decodeServerIdentifier(data: bytearray) -> dict[str, str]:
     return {"key": str(data)}
@@ -73,12 +85,14 @@ def decodeDHCPOptions(data: bytearray) -> list[dict[str, dict[str, str]]]:
         optionCode = data[0]
         optionLength = data[1]
         optionData = data[2 : 2 + optionLength]
+        print('Type: {} Value: {}'.format(dHCPLookUp[optionCode]['name'], optionData))
         try:
             dHCPLookUpResult = dHCPLookUp[optionCode]
             decodedOption = dHCPLookUpResult["func"](optionData)
+            print("decodedOption: {}".format(decodedOption))
             if dHCPLookUpResult["name"] == "End":
                 break
-            decodedOptionList.append({dHCPLookUpResult["name"]: decodedOption})
+            decodedOptionList.append({dHCPLookUpResult["name"]: decodedOption["value"]})
         except KeyError:
             decodedOptionList.append(
                 {"Unknown": {"code": optionCode, "data": optionData}}
