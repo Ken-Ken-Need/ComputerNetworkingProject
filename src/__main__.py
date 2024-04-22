@@ -4,14 +4,16 @@ from decoder.dhcp import decodeDHCPData
 from decoder.general import decodeIPData, decodeEthernetData
 from renderer import pp
 
-def parse_hex(file_name : str) -> str:
+
+def parse_hex(file_name: str) -> str:
     hex_code = []
     with open(file_name, "r+") as f:
         for line in f.readlines():
-            hex_code.extend(line.strip().split(' ')[3:])
-    
-    dataDHCP = ' '.join(hex_code)
+            hex_code.extend(line.strip().split(" ")[3:])
+
+    dataDHCP = " ".join(hex_code)
     return dataDHCP
+
 
 dataDHCP = """
 ff ff ff ff ff ff c8 89 f3 a8 58 a9 08 00 45 00

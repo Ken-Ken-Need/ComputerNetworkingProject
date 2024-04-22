@@ -174,7 +174,7 @@ def segment(data: bytearray) -> segmentedData:
             "UDP": uDPData,
             "DNS": dnsData,
         }
-    elif uDPData["Destination Port"] == (67 or 68):
+    elif uDPData["Destination Port"] == 67 or uDPData["Destination Port"] == 68:
         dhcpData = segmentDHCP(data[42:])
         return {
             "Ethernet": ethernetData,
