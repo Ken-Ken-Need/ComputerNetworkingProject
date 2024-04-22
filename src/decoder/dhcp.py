@@ -1,5 +1,6 @@
 from typing import TypedDict, Callable
 from segmenter import segmentedDHCPData
+from decoder.general import hex2DecIp
 
 
 def decodeSubnetMask(data: bytearray) -> dict[str, str]:
@@ -87,45 +88,22 @@ def decodeDHCPOptions(data: bytearray) -> list[dict[str, dict[str, str]]]:
     return decodedOptionList
 
 
-decodedDHCPData = TypedDict(
-    "decodedDHCPData",
-    {
-        "Op": str,
-        "Htype": str,
-        "Hlen": str,
-        "Hops": str,
-        "Xid": str,
-        "Secs": str,
-        "Flags": str,
-        "Ciaddr": str,
-        "Yiaddr": str,
-        "Siaddr": str,
-        "Giaddr": str,
-        "Chaddr": str,
-        "Sname": str,
-        "File": str,
-        "Magic": str,
-        "Options": list[dict[str, dict[str, str]]],
-    },
-)
-
-
-def decodeDHCPData(data: segmentedDHCPData) -> decodedDHCPData:
+def decodeDHCPData(data: segmentedDHCPData):
     return {
-        "Op": str(data["Op"]),
-        "Htype": str(data["Htype"]),
-        "Hlen": str(data["Hlen"]),
+        "Message Type": str(data["Op"]),
+        "Hardware Type": str(data["Htype"]),
+        "Hardware address length": str(data["Hlen"]),
         "Hops": str(data["Hops"]),
-        "Xid": data["Xid"],
-        "Secs": data["Secs"],
-        "Flags": data["Flags"],
-        "Ciaddr": data["Ciaddr"],
-        "Yiaddr": data["Yiaddr"],
-        "Siaddr": data["Siaddr"],
-        "Giaddr": data["Giaddr"],
-        "Chaddr": data["Chaddr"],
-        "Sname": data["Sname"],
-        "File": data["File"],
+        "Transaction Id": data["Xid"],
+        "Seconds Elapsed": data["Secs"],
+        "Bootp Flags": data["Flags"],
+        "Client IP Sddress": hex2DecIp(data["Ciaddr"]),
+        "Your IP Sddress": hex2DecIp(data["Yiaddr"]),
+        "Next Server IP Address": hex2DecIp(data["Siaddr"]),
+        "Relay Agent IP Address": hex2DecIp(data["Giaddr"]),
+        "Client Hardware address": data["Chaddr"],
+        "Server Host": data["Sname"],
+        "Boot File": data["File"],
         "Magic": data["Magic"],
         "Options": decodeDHCPOptions(data["Options"]),
     }

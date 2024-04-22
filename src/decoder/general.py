@@ -1,4 +1,4 @@
-from segmenter import segmentedIPData
+from segmenter import segmentedIPData, segmentedEthernetData
 
 
 def hex2DecIp(hex_str: str):
@@ -14,7 +14,42 @@ def hex2DecIp(hex_str: str):
     return dec
 
 
+iPProtocalLookUp = {
+    1: "ICMP",
+    6: "TCP",
+    17: "UDP",
+    41: "IPv6",
+    58: "ICMPv6",
+}
+
+etherTypeLookUp = {
+    "0800": "IPv4",
+    "0806": "ARP",
+    "86dd": "IPv6",
+}
+
+
+def decodeEthernetData(data: segmentedEthernetData):
+    decodedData: dict = data.copy()  # type: ignore
+
+    decodedData["Type"] = data["Type"] + " (" + etherTypeLookUp[data["Type"]] + ")"
+    decodedData["Destination MAC"] = ":".join(
+        [data["Destination MAC"][i : i + 2] for i in range(0, 12, 2)]
+    )
+    decodedData["Source MAC"] = ":".join(
+        [data["Source MAC"][i : i + 2] for i in range(0, 12, 2)]
+    )
+
+    return decodedData
+
+
 def decodeIPData(data: segmentedIPData):
-    data["Destination IP"] = hex2DecIp(data["Destination IP"])
-    data["Source IP"] = hex2DecIp(data["Source IP"])
-    return data
+    decodedData: dict = data.copy()  # type: ignore
+
+    decodedData["Destination IP"] = hex2DecIp(data["Destination IP"])
+    decodedData["Source IP"] = hex2DecIp(data["Source IP"])
+    decodedData["Protocol"] = (
+        str(data["Protocol"]) + " (" + iPProtocalLookUp[data["Protocol"]] + ")"
+    )
+
+    return decodedData

@@ -1,7 +1,7 @@
 from segmenter import segment
 from decoder.dns import decodeDNSData
 from decoder.dhcp import decodeDHCPData
-from decoder.general import decodeIPData
+from decoder.general import decodeIPData, decodeEthernetData
 from renderer import pp
 
 dataDHCP = """
@@ -36,7 +36,7 @@ data = bytearray.fromhex(dataDHCP)
 
 segmentedData = segment(data)
 decodedData = {
-    "Ethernet": segmentedData["Ethernet"],
+    "Ethernet": decodeEthernetData(segmentedData["Ethernet"]),
     "IP": decodeIPData(segmentedData["IP"]),
     "UDP": segmentedData["UDP"],
 }
