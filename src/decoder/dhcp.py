@@ -4,8 +4,7 @@ from decoder.general import hex2DecIp
 
 
 def decodeSubnetMask(data: bytearray):
-
-    return {"key": str(data)}
+    pass
 
 
 def decodeRouter(data: bytearray):
@@ -13,22 +12,19 @@ def decodeRouter(data: bytearray):
 
 
 def decodeDomainNameServer(data: bytearray):
-
-    return {"key": str(data)}
+    pass
 
 
 def decodeHostname(data: bytearray):
-
-    return {"key": str(data)}
+    pass
 
 
 def decodeDomainName(data: bytearray):
-
-    return {"key": str(data)}
+    pass
 
 
 def decodeIPAddressLeaseTime(data: bytearray):
-    return {"key": str(data)}
+    pass
 
 
 def decodeDHCPMessageType(data: bytearray):
@@ -47,19 +43,19 @@ def decodeDHCPMessageType(data: bytearray):
 
 
 def decodeServerIdentifier(data: bytearray):
-    return {"key": str(data)}
+    pass
 
 
 def decodeParameterRequestList(data: bytearray):
-    return {"key": str(data)}
+    pass
 
 
 def decodeMaximumDHCPMessageSize(data: bytearray):
-    return {"key": str(data)}
+    pass
 
 
 def decodeClientIdentifier(data: bytearray):
-    return {"key": str(data)}
+    pass
 
 
 dHCPLookUpItem = TypedDict(
