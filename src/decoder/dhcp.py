@@ -3,35 +3,35 @@ from segmenter import segmentedDHCPData
 from decoder.general import hex2DecIp
 
 
-def decodeSubnetMask(data: bytearray) -> dict[str, str]:
+def decodeSubnetMask(data: bytearray):
 
     return {"key": str(data)}
 
 
-def decodeRouter(data: bytearray) -> dict[str, str]:
+def decodeRouter(data: bytearray):
     return {"key": str(data)}
 
 
-def decodeDomainNameServer(data: bytearray) -> dict[str, str]:
-
-    return {"key": str(data)}
-
-
-def decodeHostname(data: bytearray) -> dict[str, str]:
+def decodeDomainNameServer(data: bytearray):
 
     return {"key": str(data)}
 
 
-def decodeDomainName(data: bytearray) -> dict[str, str]:
+def decodeHostname(data: bytearray):
 
     return {"key": str(data)}
 
 
-def decodeIPAddressLeaseTime(data: bytearray) -> dict[str, str]:
+def decodeDomainName(data: bytearray):
+
     return {"key": str(data)}
 
 
-def decodeDHCPMessageType(data: bytearray) -> dict[str, str]:
+def decodeIPAddressLeaseTime(data: bytearray):
+    return {"key": str(data)}
+
+
+def decodeDHCPMessageType(data: bytearray):
     lookUpTable = {
         1: "Discover",
         2: "Offer",
@@ -43,28 +43,28 @@ def decodeDHCPMessageType(data: bytearray) -> dict[str, str]:
         8: "Inform",
     }
     id = int.from_bytes(data, "big")
-    return {"value": lookUpTable[id]}
+    return lookUpTable[id]
 
 
-def decodeServerIdentifier(data: bytearray) -> dict[str, str]:
+def decodeServerIdentifier(data: bytearray):
     return {"key": str(data)}
 
 
-def decodeParameterRequestList(data: bytearray) -> dict[str, str]:
+def decodeParameterRequestList(data: bytearray):
     return {"key": str(data)}
 
 
-def decodeMaximumDHCPMessageSize(data: bytearray) -> dict[str, str]:
+def decodeMaximumDHCPMessageSize(data: bytearray):
     return {"key": str(data)}
 
 
-def decodeClientIdentifier(data: bytearray) -> dict[str, str]:
+def decodeClientIdentifier(data: bytearray):
     return {"key": str(data)}
 
 
 dHCPLookUpItem = TypedDict(
     "dHCPLookUpItem",
-    {"name": str, "func": Callable[[bytearray], dict[str, str]]},
+    {"name": str, "func": Callable[[bytearray], object]},
 )
 
 dHCPLookUp: dict[int, dHCPLookUpItem] = {
@@ -92,9 +92,10 @@ def decodeDHCPOptions(data: bytearray) -> list[dict[str, dict[str, str]]]:
         try:
             dHCPLookUpResult = dHCPLookUp[optionCode]
             decodedOption = dHCPLookUpResult["func"](optionData)
+            print(decodedOption)
             if dHCPLookUpResult["name"] == "End":
                 break
-            decodedOptionList.append({dHCPLookUpResult["name"]: decodedOption["value"]})
+            decodedOptionList.append({dHCPLookUpResult["name"]: decodedOption})
         except KeyError:
             decodedOptionList.append(
                 {"Unknown": {"code": optionCode, "data": optionData}}
