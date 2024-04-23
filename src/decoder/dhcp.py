@@ -2,26 +2,36 @@ from typing import TypedDict, Callable
 from segmenter import segmentedDHCPData
 from decoder.general import hex2DecIp
 
+def byte2address(bytes: bytearray):
+    binary_str = ''.join(format(byte, '08b') for byte in bytes)
+    address = '.'.join(str(int(binary_str[i:i+8], 2)) for i in range(0, 32, 8))
+
+    return address
 
 def decodeSubnetMask(data: bytearray):
-    pass
+    subnet_mask = byte2address(data)
 
+    return subnet_mask
 
 def decodeRouter(data: bytearray):
-    return {"key": str(data)}
+    router = byte2address(data)
 
+    return router
 
 def decodeDomainNameServer(data: bytearray):
-    pass
+    DNS = byte2address(data)
+
+    return DNS
 
 
 def decodeHostname(data: bytearray):
-    pass
+
+    return str(data)
 
 
 def decodeDomainName(data: bytearray):
-    pass
 
+    return str(data)
 
 def decodeIPAddressLeaseTime(data: bytearray):
     pass
