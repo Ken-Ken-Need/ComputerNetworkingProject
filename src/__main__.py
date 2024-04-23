@@ -15,7 +15,7 @@ def parse_hex(file_name: str) -> str:
     return dataDHCP
 
 try:
-    dataDHCP = parse_hex("hex_dumps/925.txt")
+    dataDHCP = parse_hex("hex_dumps/939.txt")
 except:
     raise ValueError("hex dump file not found")
 

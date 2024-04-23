@@ -4,7 +4,6 @@ from decoder.general import hex2DecIp
 
 def byte2address(bytes: bytearray):
     binary_str = ''.join(format(byte, '08b') for byte in bytes)
-    print(len(binary_str))
     if len(binary_str) > 32:
         address = ['.'.join(str(int(binary_str[i:i+8], 2)) for i in range(j, j + 32, 8)) for j in range(0, len(binary_str), 32)]
     else:
@@ -12,15 +11,18 @@ def byte2address(bytes: bytearray):
 
     return address
 
+
 def decodeSubnetMask(data: bytearray):
     subnet_mask = byte2address(data)
 
     return subnet_mask
 
+
 def decodeRouter(data: bytearray):
     router = byte2address(data)
 
     return router
+
 
 def decodeDomainNameServer(data: bytearray):
     DNS = byte2address(data)
@@ -30,48 +32,71 @@ def decodeDomainNameServer(data: bytearray):
 
 def decodeHostname(data: bytearray):
 
-    return str(data)
+    return data.decode('utf-8')
 
 
 def decodeDomainName(data: bytearray):
 
-    return str(data)
+    return data.decode('utf-8')
+
 
 def decodeIPAddressLeaseTime(data: bytearray):
-    pass
+    sec = int.from_bytes(data, byteorder='big')
+    if sec > 24 * 3600:
+        res = '{} days ({})'.format(sec // (24 * 3600), sec)
+    else:
+        res = '{} hours ({})'.format(sec // (3600), sec)
+    return res
 
 
 def decodeDHCPMessageType(data: bytearray):
-    lookUpTable = {
-        1: "Discover",
-        2: "Offer",
-        3: "Request",
-        4: "Decline",
-        5: "Pack",
-        6: "Pnak",
-        7: "Release",
-        8: "Inform",
+    messageTypeTable = {
+        1 : "Discover",
+        2 : "Offer",
+        3 : "Request",
+        4 : "Decline",
+        5 : "ACK",
+        6 : "Nak",
+        7 : "Release",
+        8 : "Inform",
     }
     id = int.from_bytes(data, "big")
-    return lookUpTable[id]
+    res = '{} ({})'.format(messageTypeTable[id], id)
+    return res
 
 
 def decodeServerIdentifier(data: bytearray):
     server_identifier = byte2address(data)
-    
+
     return server_identifier
 
 
 def decodeParameterRequestList(data: bytearray):
-    pass
+    
+    return data
 
 
 def decodeMaximumDHCPMessageSize(data: bytearray):
-    pass
+    size = int.from_bytes(data, byteorder='big')
+    return size
 
 
 def decodeClientIdentifier(data: bytearray):
-    pass
+    hardwareTable = {
+        0  : "Bluetooth",
+        1  : "Ethernet",
+        6  : "IEEE 802", 
+        9  : "Token Ring",
+        14 : "IEEE 1394",
+        15 : "FDDI",
+        32 : "InfiniBand",
+    }
+    hardware_type = hardwareTable[data[0]]
+    MAC_address = ':'.join(format(byte, 'x') for byte in data[1:])
+    return {
+        "Hardware type" : hardware_type,
+        "Client MAC Address" : MAC_address
+    }
 
 
 dHCPLookUpItem = TypedDict(
