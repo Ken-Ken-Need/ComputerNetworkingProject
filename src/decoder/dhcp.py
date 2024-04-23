@@ -4,7 +4,11 @@ from decoder.general import hex2DecIp
 
 def byte2address(bytes: bytearray):
     binary_str = ''.join(format(byte, '08b') for byte in bytes)
-    address = '.'.join(str(int(binary_str[i:i+8], 2)) for i in range(0, 32, 8))
+    print(len(binary_str))
+    if len(binary_str) > 32:
+        address = ['.'.join(str(int(binary_str[i:i+8], 2)) for i in range(j, j + 32, 8)) for j in range(0, len(binary_str), 32)]
+    else:
+        address = '.'.join(str(int(binary_str[i:i+8], 2)) for i in range(0, 32, 8))
 
     return address
 
@@ -53,7 +57,9 @@ def decodeDHCPMessageType(data: bytearray):
 
 
 def decodeServerIdentifier(data: bytearray):
-    pass
+    server_identifier = byte2address(data)
+    
+    return server_identifier
 
 
 def decodeParameterRequestList(data: bytearray):
@@ -98,7 +104,6 @@ def decodeDHCPOptions(data: bytearray) -> list[dict[str, dict[str, str]]]:
         try:
             dHCPLookUpResult = dHCPLookUp[optionCode]
             decodedOption = dHCPLookUpResult["func"](optionData)
-            print(decodedOption)
             if dHCPLookUpResult["name"] == "End":
                 break
             decodedOptionList.append({dHCPLookUpResult["name"]: decodedOption})
