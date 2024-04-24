@@ -67,13 +67,21 @@ def decodeDHCPMessageType(data: bytearray):
 
 def decodeServerIdentifier(data: bytearray):
     server_identifier = byte2address(data)
-
     return server_identifier
 
 
 def decodeParameterRequestList(data: bytearray):
-    
-    return data
+    result = []
+    for byte in data:
+        line = ['Parameter Request List Item: ']
+        if byte in dHCPLookUp:
+            line.append(f"({byte}) ")
+            line.append(dHCPLookUp[byte]["name"])
+        else:
+            line.append(f"({byte}) Unknown")
+        result.append(''.join(line))
+    result = '\n'.join(result)
+    return result
 
 
 def decodeMaximumDHCPMessageSize(data: bytearray):
@@ -110,6 +118,7 @@ dHCPLookUp: dict[int, dHCPLookUpItem] = {
     6: {"name": "Domain Name Server", "func": decodeDomainNameServer},
     12: {"name": "Hostname", "func": decodeHostname},
     15: {"name": "Domain Name", "func": decodeDomainName},
+    #ljn ↓
     51: {"name": "IP Address Lease Time", "func": decodeIPAddressLeaseTime},
     53: {"name": "DHCP Message Type", "func": decodeDHCPMessageType},
     54: {"name": "Server Identifier", "func": decodeServerIdentifier},
