@@ -71,12 +71,46 @@ def decodeServerIdentifier(data: bytearray):
 
 
 def decodeParameterRequestList(data: bytearray):
+    dHCPLookUpTable = {
+    1: {"name": "Subnet Mask"},
+    2: {"name": "Time Offset"},
+    3: {"name": "Router"},
+    4: {"name": "Time Server"},
+    5: {"name": "Name Server"},
+    6: {"name": "Domain Name Server"},
+    7: {"name": "Log Server"},
+    8: {"name": "Quote Server"},
+    12: {"name": "Host Name"},
+    15: {"name": "Domain Name"},
+    17: {"name": "Root Path"},
+    28: {"name": "Broadcast Address"},
+    33: {"name": "Static Route"},
+    40: {"name": "NIS Domain"},
+    41: {"name": "NIS Server"},
+    42: {"name": "NTP Server"},
+    44: {"name": "NetBIOS over TCP/IP Name Server"},
+    46: {"name": "NetBIOS over TCP/IP Node Type"},
+    47: {"name": "NetBIOS over TCP/IP Scope"},
+    48: {"name": "X Window System Font Server"},
+    49: {"name": "X Window System Display Manager"},
+    50: {"name": "Requested IP Address"},
+    51: {"name": "IP Address Lease Time"},
+    53: {"name": "DHCP Message Type"},
+    54: {"name": "Server Identifier"},
+    55: {"name": "Parameter Request List"},
+    56: {"name": "Message"},
+    57: {"name": "DHCP Maximum Message Size"},
+    58: {"name": "Renewal (T1) Time Value"},
+    59: {"name": "Rebinding (T2) Time Value"},
+    60: {"name": "Class Identifier"},
+    61: {"name": "Client Identifier"}
+}
     result = []
     for byte in data:
         line = ['Parameter Request List Item: ']
-        if byte in dHCPLookUp:
+        if byte in dHCPLookUpTable:
             line.append(f"({byte}) ")
-            line.append(dHCPLookUp[byte]["name"])
+            line.append(dHCPLookUpTable[byte]["name"])
         else:
             line.append(f"({byte}) Unknown")
         result.append(''.join(line))
