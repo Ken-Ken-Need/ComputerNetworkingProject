@@ -1,6 +1,6 @@
 from typing import TypedDict, Callable
 from segmenter import segmentedDHCPData
-from decoder.general import hex2DecIp
+from decoder.general import hex2DecIp, lookUpInDict
 
 
 def byte2address(bytes: bytearray):
@@ -330,12 +330,75 @@ def decodeDHCPOptions(data: bytearray) -> list[dict[str, dict[str, str]]]:
     return decodedOptionList
 
 
+dHCPMessageTypeLookUp = {
+    1: "Discover",
+    2: "Offer",
+    3: "Request",
+    4: "Decline",
+    5: "ACK",
+    6: "Nak",
+    7: "Release",
+    8: "Inform",
+}
+
+dHCPHardwareTypeLookUp = {
+    1: "Ethernet",
+    6: "IEEE 802",
+    15: "FDDI",
+    20: "Fibre Channel",
+    23: "ARCNET",
+    24: "ARCNET",
+    28: "Hyperchannel",
+    29: "Lanstar",
+    30: "Autonet Short Address",
+    31: "LocalTalk",
+    32: "LocalNet",
+    33: "Ultra link",
+    34: "SMDS",
+    35: "Frame Relay",
+    36: "Asynchronous Transmission Mode (ATM)",
+    37: "HDLC",
+    38: "Fibre Channel",
+    39: "Asynchronous Transmission Mode (ATM)",
+    40: "Serial Line",
+    41: "Asynchronous Transmission Mode (ATM)",
+    42: "MIL-STD-188-220",
+    43: "Metricom",
+    44: "IEEE 1394.1995",
+    45: "MAPOS",
+    46: "Twinaxial",
+    47: "EUI-64",
+    48: "HIPARP",
+    49: "ISO 7816-3",
+    50: "ARPSec",
+    51: "IPsec tunnel",
+    52: "InfiniBand",
+    53: "CAI",
+    54: "Wiegand Interface",
+    55: "Pure IP",
+    56: "HW_EXP1",
+    57: "HFI",
+    58: "HW_EXP2",
+    59: "Ethernet 3-Address",
+    60: "InfiniBand 3-Address",
+    61: "802.15.4",
+    62: "802.15.4 Secured",
+    63: "WIMAX",
+    64: "Ethernet with 802.1X Security",
+    65: "SERCOS Interface Standard",
+    66: "CAN Bus",
+    67: "CAN FD",
+    68: "IEEE 802.15.4 with 6LoWPAN",
+    69: "Bluetooth Low Energy",
+}
+
+
 def decodeDHCPData(data: segmentedDHCPData):
     return {
-        "Message Type": str(data["Op"]),
-        "Hardware Type": str(data["Htype"]),
-        "Hardware address length": str(data["Hlen"]),
-        "Hops": str(data["Hops"]),
+        "Message Type": f"{str(data['Op'])} ({lookUpInDict(dHCPMessageTypeLookUp, data['Op'])})",
+        "Hardware Type": f"{str(data['Htype'])} ({lookUpInDict(dHCPHardwareTypeLookUp, data['Htype'])})",
+        "Hardware address length": data["Hlen"],
+        "Hops": data["Hops"],
         "Transaction Id": data["Xid"],
         "Seconds Elapsed": data["Secs"],
         "Bootp Flags": data["Flags"],

@@ -16,4 +16,4 @@ def read_file_to_byte(file_path):
 
 def write_byte_to_file(file_path, data):
     with open(file_path, "w") as f:
-        yaml.dump(data, f, default_flow_style=False)
+        yaml.dump(data, f, default_flow_style=False, sort_keys=False, indent=2)

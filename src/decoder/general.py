@@ -1,7 +1,7 @@
 from segmenter import segmentedIPData, segmentedEthernetData
 
 
-def lookUpInDict(lookUpDict: dict, key: str):
+def lookUpInDict(lookUpDict: dict, key: object):
     return lookUpDict.get(key, "Unknown")
 
 

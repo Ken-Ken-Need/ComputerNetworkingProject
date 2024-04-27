@@ -99,78 +99,79 @@ def hex_to_binary(hex_string):
 
 
 def decodeFlag(binary_representation: str):
-    Flags: str = ""
+    Flags = {}
 
-    Flags += "Response: "
     if binary_representation[0] == 0:
-        Flags += "Query\n"
+        Flags["Response"] = "Query"
     else:
-        Flags += "Response\n"
+        Flags["Response"] = "Response"
 
     opcode = binary_representation[1:5]
-    Flags += "Opcode: "
     if opcode == "0000":
-        Flags += "Standard query\n"
+        Flags["Opcode"] = "Standard query"
     elif opcode == "0001":
-        Flags += "Inverse query\n"
+        Flags["Opcode"] = "Inverse query"
     elif opcode == "0010":
-        Flags += "Server status request\n"
+        Flags["Opcode"] = "Server status request"
     elif opcode == "0011":
-        Flags += "Status reserved and therefore not used\n"
+        Flags["Opcode"] = "Status reserved and therefore not used"
     else:
-        Flags += opcode
-        Flags += "\n"
+        Flags["Opcode"] = opcode
 
-    Flags += "Authoritive: "
     if binary_representation[5] == "0":
-        Flags += "The server is not an authority for the domain\n"
+        Flags["Authoritive"] = "The server is not an authority for the domain"
     else:
-        Flags += "The server is an authority for the domain\n"
+        Flags["Authoritive"] = "The server is an authority for the domain"
 
     if binary_representation[6] == "0":
-        Flags += "Truncated: The message is not truncated\n"
+        Flags["Truncated"] = "The message is not truncated"
     else:
-        Flags += "Truncated: The message is truncated\n"
+        Flags["Truncated"] = "The message is truncated"
 
     if binary_representation[7] == "0":
-        Flags += "Recursion desired: Do not query recursively\n"
+        Flags["Recursion desired"] = "Do not query recursively"
     else:
-        Flags += "Recursion desired: Do query recursively\n"
+        Flags["Recursion desired"] = "Do query recursively"
 
     if binary_representation[8] == "0":
-        Flags += "Recursion available: Server can do recursive queries\n"
+        Flags["Recursion available"] = "Server can do recursive queries"
     else:
-        Flags += "Recursion available: Server can not do recursive queries\n"
+        Flags["Recursion available"] = "Server can not do recursive queries"
 
     if binary_representation[9] == "0":
-        Flags += "Z: reserved\n"
+        Flags["Z"] = "reserved"
     else:
-        Flags += "Z: reserved\n"
+        Flags["Z"] = "reserved"
 
     if binary_representation[10] == "0":
-        Flags += "Answer authenticated: Answer/authority portion was not authenticated by the server\n"
+        Flags["Answer authenticated"] = (
+            "Answer/authority portion was not authenticated by the server"
+        )
     else:
-        Flags += "Answer authenticated: Answer/authority portion was authenticated by the server\n"
+        Flags["Answer authenticated"] = (
+            "Answer/authority portion was authenticated by the server"
+        )
 
     if binary_representation[11] == "0":
-        Flags += "Non-authenticated data: Unacceptable\n"
+        Flags["Non-authenticated data"] = "Unacceptable"
     else:
-        Flags += "Non-authenticated data: Acceptable\n"
+        Flags["Non-authenticated data"] = "Acceptable"
 
     rcode: str = binary_representation[12:]
-    Flags += "Reply code: "
+
     if rcode == "0000":
-        Flags += "No error"
+        Flags["Reply code"] = "No error"
     elif rcode == "0001":
-        Flags += "Format error"
+        Flags["Reply code"] = "Format error"
     elif rcode == "0010":
-        Flags += "Server failure"
+        Flags["Reply code"] = "Server failure"
     elif rcode == "0011":
-        Flags += "Name error"
+        Flags["Reply code"] = "Name error"
     elif rcode == "0100":
-        Flags += "Not implemented"
+        Flags["Reply code"] = "Not implemented"
     elif rcode == "0101":
-        Flags += "Refused"
+        Flags["Reply code"] = "Refused"
+
     return Flags
 
 
@@ -348,7 +349,7 @@ def decodeDNSRecords(data: bytearray, que: int, ans: int, auth: int, add: int):
 
 def decodeDNSData(data: segmentedDNSData):
     result = {}
-    result["Transaction ID"] = "0x" + data["Transaction ID"]
+    result["Transaction ID"] = data["Transaction ID"]
     original_hex: str = data["Flags"]
     binary_representation: str = hex_to_binary(original_hex)
     result["Flags"] = decodeFlag(binary_representation)
