@@ -1,10 +1,7 @@
-import sys
-
-sys.path.append("..")
-
 from typing import TypedDict
 from typing import Union
 from segmenter import segmentedDNSData
+from decoder.general import lookUpInDict, hex2DecIp
 
 dNSQuery = TypedDict(
     "dNSQuery",
@@ -35,7 +32,13 @@ dNSAuthority = TypedDict(
         "Class": str,
         "TTL": int,
         "Data Length": int,
-        "Address": str,
+        "Primary Name Server": str,
+        "Responsible Mail Address": str,
+        "Serial Number": int,
+        "Refresh Interval": int,
+        "Retry Interval": int,
+        "Expire Limit": int,
+        "Minimum TTL": int,
     },
 )
 
@@ -51,20 +54,16 @@ dNSAdditional = TypedDict(
     },
 )
 
-decodedDNSData = TypedDict(
-    "decodedDNSData",
-    {
-        "Transaction ID": str,
-        "Flags": str,
-        "Questions": int,
-        "Answer RRs": int,
-        "Authority RRs": int,
-        "Additional RRs": int,
-        "Queries": Union[list[dNSQuery], None],
-        "Answers": Union[list[dNSAnswer], None],
-        "Authority Servers": Union[list[dNSAuthority], None],
-        "Additional Records": Union[list[dNSAdditional], None],
-    },
+decodedDNSRecords = (
+    TypedDict(
+        "decodedDNSRecords",
+        {
+            "Queries": Union[list[dNSQuery], None],
+            "Answers": Union[list[dNSAnswer], None],
+            "Authority Servers": Union[list[dNSAuthority], None],
+            "Additional Records": Union[list[dNSAdditional], None],
+        },
+    ),
 )
 
 
@@ -175,55 +174,197 @@ def decodeFlag(binary_representation: str):
     return Flags
 
 
-def decodeDNSData(data: segmentedDNSData) -> decodedDNSData:
-    # -----------The part to process Transaction ID -----#
-    TransactionID: str = "0x" + data["Transaction ID"]
+def dNSDomainNameReaderWithCompression(data: bytearray, offset: int) -> tuple[str, int]:
+    pointer = offset
+    domain_name = ""
+    while data[pointer] != 0:
+        if data[pointer] != 192:
+            length = data[pointer]
+            domain_name += (
+                bytearray_to_string(data[pointer + 1 : pointer + 1 + length]) + "."
+            )
+            pointer += length + 1
+        else:
+            domain_name += (
+                dNSDomainNameReaderWithCompression(data, data[pointer + 1] - 12)[0]
+                + "."
+            )
+            pointer += 1
+            break
+    return domain_name[:-1], pointer + 1
 
-    # -------Flags------------#
+
+dNSRecordTypeLookup = {
+    "0001": "A",
+    "0002": "NS",
+    "0005": "CNAME",
+    "0006": "SOA",
+    "000c": "PTR",
+    "000f": "MX",
+    "0010": "TXT",
+    "001c": "AAAA",
+    "00ff": "ANY",
+}
+
+dNSRecordClassLookup = {
+    "0001": "IN",
+    "0002": "CS",
+    "0003": "CH",
+    "0004": "HS",
+    "00ff": "ANY",
+}
+
+
+def decodeDNSQuery(data: bytearray, offset) -> tuple[dNSQuery, int]:
+    pointer = offset
+    domain_name, pointer = dNSDomainNameReaderWithCompression(data, pointer)
+    query_type = lookUpInDict(dNSRecordTypeLookup, data[pointer : pointer + 2].hex())
+    query_class = lookUpInDict(
+        dNSRecordClassLookup, data[pointer + 2 : pointer + 4].hex()
+    )
+    return (
+        {
+            "Query": domain_name,
+            "Type": query_type,
+            "Class": query_class,
+        },
+        pointer + 4,
+    )
+
+
+def decodeDNSAnswer(data: bytearray, offset) -> tuple[dNSAnswer, int]:
+    pointer = offset
+    domain_name, pointer = dNSDomainNameReaderWithCompression(data, pointer)
+    query_type = lookUpInDict(dNSRecordTypeLookup, data[pointer : pointer + 2].hex())
+    query_class = lookUpInDict(
+        dNSRecordClassLookup, data[pointer + 2 : pointer + 4].hex()
+    )
+    ttl = int.from_bytes(data[pointer + 4 : pointer + 8], byteorder="big")
+    data_length = int.from_bytes(data[pointer + 8 : pointer + 10], byteorder="big")
+    address = hex2DecIp(data[pointer + 10 : pointer + 10 + data_length].hex())
+    return (
+        {
+            "Name": domain_name,
+            "Type": query_type,
+            "Class": query_class,
+            "TTL": ttl,
+            "Data Length": data_length,
+            "Address": address,
+        },
+        pointer + 10 + data_length,
+    )
+
+
+def decodeDNSAuthority(data: bytearray, offset) -> tuple[dNSAuthority, int]:
+    pointer = offset
+    domain_name, pointer = dNSDomainNameReaderWithCompression(data, pointer)
+    query_type = lookUpInDict(dNSRecordTypeLookup, data[pointer : pointer + 2].hex())
+    query_class = lookUpInDict(
+        dNSRecordClassLookup, data[pointer + 2 : pointer + 4].hex()
+    )
+    ttl = int.from_bytes(data[pointer + 4 : pointer + 8], byteorder="big")
+    data_length = int.from_bytes(data[pointer + 8 : pointer + 10], byteorder="big")
+    primary_name_server, pointer = dNSDomainNameReaderWithCompression(
+        data, pointer + 10
+    )
+    responsible_mail_address, pointer = dNSDomainNameReaderWithCompression(
+        data, pointer
+    )
+    serial_number = int.from_bytes(data[pointer : pointer + 4], byteorder="big")
+    refresh_interval = int.from_bytes(data[pointer + 4 : pointer + 8], byteorder="big")
+    retry_interval = int.from_bytes(data[pointer + 8 : pointer + 12], byteorder="big")
+    expire_limit = int.from_bytes(data[pointer + 12 : pointer + 16], byteorder="big")
+    minimum_ttl = int.from_bytes(data[pointer + 16 : pointer + 20], byteorder="big")
+    return (
+        {
+            "Name": domain_name,
+            "Type": query_type,
+            "Class": query_class,
+            "TTL": ttl,
+            "Data Length": data_length,
+            "Primary Name Server": primary_name_server,
+            "Responsible Mail Address": responsible_mail_address,
+            "Serial Number": serial_number,
+            "Refresh Interval": refresh_interval,
+            "Retry Interval": retry_interval,
+            "Expire Limit": expire_limit,
+            "Minimum TTL": minimum_ttl,
+        },
+        pointer + 20,
+    )
+
+
+def decodeDNSAdditional(data: bytearray, offset) -> tuple[dNSAdditional, int]:
+    pointer = offset
+    domain_name, pointer = dNSDomainNameReaderWithCompression(data, pointer)
+    query_type = lookUpInDict(dNSRecordTypeLookup, data[pointer : pointer + 2].hex())
+    query_class = lookUpInDict(
+        dNSRecordClassLookup, data[pointer + 2 : pointer + 4].hex()
+    )
+    ttl = int.from_bytes(data[pointer + 4 : pointer + 8], byteorder="big")
+    data_length = int.from_bytes(data[pointer + 8 : pointer + 10], byteorder="big")
+    address = hex2DecIp(data[pointer + 10 : pointer + 10 + data_length].hex())
+    return (
+        {
+            "Name": domain_name,
+            "Type": query_type,
+            "Class": query_class,
+            "TTL": ttl,
+            "Data Length": data_length,
+            "Address": address,
+        },
+        pointer + 10 + data_length,
+    )
+
+
+def decodeDNSRecords(data: bytearray, que: int, ans: int, auth: int, add: int):
+    result = {
+        "Queries": [],
+        "Answers": [],
+        "Authority Servers": [],
+        "Additional Records": [],
+    }
+    pointer = 0
+
+    for i in range(que):
+        query, npointer = decodeDNSQuery(data, pointer)
+        result["Queries"].append(query)
+        pointer = npointer
+    for i in range(ans):
+        answer, npointer = decodeDNSAnswer(data, pointer)
+        result["Answers"].append(answer)
+        pointer = npointer
+    for i in range(auth):
+        authority, npointer = decodeDNSAuthority(data, pointer)
+        result["Authority Servers"].append(authority)
+        pointer = npointer
+    for i in range(add):
+        additional, npointer = decodeDNSAdditional(data, pointer)
+        result["Additional Records"].append(additional)
+        pointer = npointer
+
+    return result
+
+
+def decodeDNSData(data: segmentedDNSData):
+    result = {}
+    result["Transaction ID"] = "0x" + data["Transaction ID"]
     original_hex: str = data["Flags"]
     binary_representation: str = hex_to_binary(original_hex)
-    Flags: str = decodeFlag(binary_representation)
+    result["Flags"] = decodeFlag(binary_representation)
+    result["Questions"] = data["Questions"]
+    result["Answer RRs"] = data["Answer RRs"]
+    result["Authority RRs"] = data["Authority RRs"]
+    result["Additional RRs"] = data["Additional RRs"]
+    records = data["Queries/Answers/AServers"]
+    result.update(
+        decodeDNSRecords(
+            records,
+            data["Questions"],
+            data["Answer RRs"],
+            data["Authority RRs"],
+            data["Additional RRs"],
+        )
+    )
 
-    # ----- Questions ----#
-    question = data["Questions"]
-
-    # -----Answer RRS------#
-    AnswerRRs = data["Answer RRs"]
-
-    # --------Authority RRs----------#
-    AuthorityRRs = data["Authority RRs"]
-
-    # -------Additional RR-----#
-    AdditionalRRs = data["Additional RRs"]
-
-    return {
-        "Transaction ID": TransactionID,
-        "Flags": Flags,
-        "Questions": question,
-        "Answer RRs": AnswerRRs,
-        "Authority RRs": AuthorityRRs,
-        "Additional RRs": AdditionalRRs,
-        # "Queries": Union[list[dNSQuery], None],
-        # "Answers": Union[list[dNSAnswer], None],
-        # "Authority Servers": Union[list[dNSAuthority], None],
-        # "Additional Records": Union[list[dNSAdditional], None],
-    }
-    pass
-
-
-if __name__ == "__main__":
-    dataDNS = """8E986B41E064C889F3A858A908004500003DF644000040111840AC140A02AC140A0190CA0035002918D49C38010000010000000000000373736C076773746174696303636F6D00001C0001"""
-    dataDNS_lower = dataDNS.lower()
-    data = bytearray.fromhex(dataDNS_lower)
-    data_proc: segmentedDNSData = {
-        "Transaction ID": data[:2].hex(),
-        "Flags": data[2:4].hex(),
-        "Questions": int(data[4:6].hex(), 16),
-        "Answer RRs": int(data[6:8].hex(), 16),
-        "Authority RRs": int(data[8:10].hex(), 16),
-        "Additional RRs": int(data[10:12].hex(), 16),
-        "Queries/Answers/AServers": data[12:],
-    }
-
-    decodeDNSData(data_proc)
-    pass
+    return result
