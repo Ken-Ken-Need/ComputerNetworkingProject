@@ -1,6 +1,10 @@
 from segmenter import segmentedIPData, segmentedEthernetData
 
 
+def lookUpInDict(lookUpDict: dict, key: object):
+    return lookUpDict.get(key, "Unknown")
+
+
 def hex2DecIp(hex_str: str):
     if len(hex_str) != 8:
         raise ValueError
