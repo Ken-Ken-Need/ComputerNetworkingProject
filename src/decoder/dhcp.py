@@ -287,6 +287,10 @@ def decodeClientIdentifier(data: bytearray):
     return {"Hardware type": hardware_type, "Client MAC Address": MAC_address}
 
 
+def decodeRequestedIPAddress(data: bytearray):
+    return byte2address(data)
+
+
 dHCPLookUpItem = TypedDict(
     "dHCPLookUpItem",
     {"name": str, "func": Callable[[bytearray], object]},
@@ -298,7 +302,7 @@ dHCPLookUp: dict[int, dHCPLookUpItem] = {
     6: {"name": "Domain Name Server", "func": decodeDomainNameServer},
     12: {"name": "Hostname", "func": decodeHostname},
     15: {"name": "Domain Name", "func": decodeDomainName},
-    # ljn ↓
+    50: {"name": "Requested IP Address", "func": decodeRequestedIPAddress},
     51: {"name": "IP Address Lease Time", "func": decodeIPAddressLeaseTime},
     53: {"name": "DHCP Message Type", "func": decodeDHCPMessageType},
     54: {"name": "Server Identifier", "func": decodeServerIdentifier},
