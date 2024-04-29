@@ -52,6 +52,11 @@ def decodeIPData(data: segmentedIPData):
 
     decodedData["Destination IP"] = hex2DecIp(data["Destination IP"])
     decodedData["Source IP"] = hex2DecIp(data["Source IP"])
+    decodedData["Flags"] = {
+        "Reserved": (data["Flags"] & 0b100) >> 2,
+        "Don't Fragment": (data["Flags"] & 0b010) >> 1,
+        "More Fragments": (data["Flags"] & 0b001),
+    }
     decodedData["Protocol"] = (
         str(data["Protocol"]) + " (" + iPProtocalLookUp[data["Protocol"]] + ")"
     )
