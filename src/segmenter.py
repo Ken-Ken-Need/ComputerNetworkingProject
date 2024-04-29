@@ -164,7 +164,11 @@ def segmentDHCP(data: bytearray) -> segmentedDHCPData:
 
 def segment(data: bytearray) -> segmentedData:
     ethernetData = segmentEthernet(data[:14])
+    if ethernetData["Type"] != "0800":
+        raise ValueError("Invalid protocol")
     iPData = segmentIP(data[14:34])
+    if iPData["Protocol"] != 17:
+        raise ValueError("Invalid protocol")
     uDPData = segmentUDP(data[34:42])
     if uDPData["Destination Port"] == 53 or uDPData["Source Port"] == 53:
         dnsData = segmentDNS(data[42:])
@@ -183,4 +187,4 @@ def segment(data: bytearray) -> segmentedData:
             "DHCP": dhcpData,
         }
     else:
-        raise ValueError("Unknown protocol")
+        raise ValueError("Invalid protocol")
