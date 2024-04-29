@@ -1,70 +1,48 @@
 Ethernet:
-  Destination MAC: c8:89:f3:a8:58:a9
-  Source MAC: 64:3a:ea:2e:2f:82
+  Destination MAC: 64:3a:ea:2e:2f:82
+  Source MAC: c8:89:f3:a8:58:a9
   Type: 0800 (IPv4)
 IP:
   Version: 4
   IHL: 5
   ToS: 0
-  Total Length: 140
-  Identification: 293f
-  Flags: 0
+  Total Length: 69
+  Identification: 8dfc
+  Flags:
+    Reserved: 0
+    Don't Fragment: 0
+    More Fragments: 0
   Fragment Offset: 0
-  TTL: 62
+  TTL: 64
   Protocol: 17 (UDP)
-  Header Checksum: c519
-  Source IP: 10.214.34.6
-  Destination IP: 10.209.86.92
+  Header Checksum: 5ea3
+  Source IP: 10.209.86.92
+  Destination IP: 10.214.34.6
 UDP:
-  Source Port: 53
-  Destination Port: 50530
-  Length: 120
-  Checksum: d96e
+  Source Port: 54497
+  Destination Port: 53
+  Length: 49
+  Checksum: 7bbf
 DNS:
-  Transaction ID: "8453"
+  Transaction ID: e9ca
   Flags:
     Response: Response
-    Opcode: Standard query
+    Opcode: Server status request
     Authoritive: The server is not an authority for the domain
     Truncated: The message is not truncated
-    Recursion desired: Do query recursively
-    Recursion available: Server can not do recursive queries
+    Recursion desired: Do not query recursively
+    Recursion available: Server can do recursive queries
     Z: reserved
     Answer authenticated: Answer/authority portion was not authenticated by the server
     Non-authenticated data: Unacceptable
-    Reply code: No error
   Questions: 1
-  Answer RRs: 4
+  Answer RRs: 0
   Authority RRs: 0
   Additional RRs: 0
   Queries:
-    - Query: availability.fe2.apple-dns.net
+    - Query: setup.fe2.apple-dns.net
       Type: A
       Class: IN
-  Answers:
-    - Name: availability.fe2.apple-dns.net
-      Type: A
-      Class: IN
-      TTL: 5
-      Data Length: 4
-      Address: 17.248.216.66
-    - Name: availability.fe2.apple-dns.net
-      Type: A
-      Class: IN
-      TTL: 5
-      Data Length: 4
-      Address: 17.248.216.68
-    - Name: availability.fe2.apple-dns.net
-      Type: A
-      Class: IN
-      TTL: 5
-      Data Length: 4
-      Address: 17.248.216.69
-    - Name: availability.fe2.apple-dns.net
-      Type: A
-      Class: IN
-      TTL: 5
-      Data Length: 4
-      Address: 17.248.216.64
+  Answers: []
   Authority Servers: []
   Additional Records: []

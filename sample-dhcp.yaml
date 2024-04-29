@@ -8,7 +8,10 @@ IP:
   ToS: 0
   Total Length: 328
   Identification: 0824
-  Flags: 0
+  Flags:
+    Reserved: 0
+    Don't Fragment: 0
+    More Fragments: 0
   Fragment Offset: 0
   TTL: 255
   Protocol: 17 (UDP)
