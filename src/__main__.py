@@ -1,12 +1,12 @@
+import argparse
+import yaml
+import re
+import os
 from io import TextIOWrapper
 from segmenter import segment
 from decoder.dns import decodeDNSData
 from decoder.dhcp import decodeDHCPData
 from decoder.general import decodeIPData, decodeEthernetData
-import argparse
-import yaml
-import re
-import os
 
 parser = argparse.ArgumentParser(
     prog="DNS/DHCP Packet Analyzer",
